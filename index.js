@@ -28,11 +28,18 @@ async function run() {
     const db = client.db('IEHub-db')
     const productsCollection = db.collection('products')
 
-
+    // get all product
     app.get('/products', async (req, res)=>{
         const cursor = productsCollection.find()
         const result = await cursor.toArray()
         res.send(result)
+    })
+
+    // add data
+    app.post('/products', async (req, res)=>{
+        const newProduct = req.body;
+      const result = await productsCollection.insertOne(newProduct);
+      res.send(result);
     })
 
 
