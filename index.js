@@ -1,7 +1,7 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
-const { MongoClient, ServerApiVersion } = require('mongodb');
+const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 3000
 
 app.use(cors())
@@ -34,6 +34,14 @@ async function run() {
         const result = await cursor.toArray()
         res.send(result)
     })
+
+    // get a single product
+    app.get("/products/:id", async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: new ObjectId(id) };
+          const result = await productsCollection.findOne(query);
+          res.send(result);
+        });
 
     // add data
     app.post('/products', async (req, res)=>{
