@@ -112,10 +112,42 @@ async function run() {
     })
 
     // add a product to myImports
-    app.post('/my-imports', async (req, res)=>{
+        app.post('/my-imports', async (req, res)=>{
         const newProduct = req.body;
-      const result = await importsCollection.insertOne(newProduct);
+        // const id = req.params.id
+        const result = await importsCollection.insertOne(newProduct);
+
+          // const query = {_id : new ObjectId(id)}
+          // const update = {
+          //   $inc:{
+          //     available_quantity: -1
+          //   }
+          // }
+          // const quantityCount = await productsCollection.updateOne(query, update)
+        res.send(result);
+    })
+
+     // delete a product from my imports
+    app.delete("/myImports/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await importsCollection.deleteOne(query);
       res.send(result);
+    });
+    // delete a product
+    app.delete("/myExports/:id", async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const result = await productsCollection.deleteOne(query);
+      res.send(result);
+    })
+
+    // search products
+    app.get('/search', async (req, res)=>{
+      const searchText = req.query.search
+      const query = {product_name : {$regex:searchText , $options: "i"}}
+      const result = await productsCollection.find(query).toArray()
+      res.send(result)
     })
 
 
