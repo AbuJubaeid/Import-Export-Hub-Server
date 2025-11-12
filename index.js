@@ -50,6 +50,18 @@ async function run() {
         res.send(result)
     })
 
+    // get my exports
+     app.get("/myExports", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.created_by = email;
+      }
+      const cursor = productsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
     // add data
     app.post('/products', async (req, res)=>{
         const newProduct = req.body;
