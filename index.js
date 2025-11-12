@@ -70,7 +70,28 @@ async function run() {
       res.send(result);
     });
 
-    // add data
+     // update a product
+    app.put("/myExports/:id", async (req, res) => {
+      const updateProduct = req.body;
+      const id = req.params.id;
+      const query = { _id: new ObjectId(id) };
+      const update = {
+        $set: {
+          // name: updateProduct.name,
+          // price: updateProduct.price,
+          product_image: updateProduct.product_image,
+          product_name: updateProduct.product_name,
+          price: updateProduct.price,
+          origin_country: updateProduct.origin_country,
+          rating: updateProduct.rating,
+          available_quantity: updateProduct.available_quantity,
+        },
+      };
+      const result = await productsCollection.updateOne(query, update);
+      res.send(result);
+    });
+
+    // add a product
     app.post('/products', async (req, res)=>{
         const newProduct = req.body;
       const result = await productsCollection.insertOne(newProduct);
