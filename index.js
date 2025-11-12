@@ -27,6 +27,7 @@ async function run() {
 
     const db = client.db('IEHub-db')
     const productsCollection = db.collection('products')
+    const importsCollection = db.collection('imports')
 
     // get all product
     app.get('/products', async (req, res)=>{
@@ -58,6 +59,18 @@ async function run() {
         query.created_by = email;
       }
       const cursor = productsCollection.find(query);
+      const result = await cursor.toArray();
+      res.send(result);
+    });
+
+    // get my imports
+     app.get("/my-imports", async (req, res) => {
+      const email = req.query.email;
+      const query = {};
+      if (email) {
+        query.imported_by = email;
+      }
+      const cursor = importsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -95,6 +108,13 @@ async function run() {
     app.post('/products', async (req, res)=>{
         const newProduct = req.body;
       const result = await productsCollection.insertOne(newProduct);
+      res.send(result);
+    })
+
+    // add a product to myImports
+    app.post('/my-imports', async (req, res)=>{
+        const newProduct = req.body;
+      const result = await importsCollection.insertOne(newProduct);
       res.send(result);
     })
 
