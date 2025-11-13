@@ -107,7 +107,7 @@ async function run() {
       if (email) {
         query.imported_by = email;
       }
-      const cursor = importsCollection.find(query);
+      const cursor = importsCollection.find(query).toArray();
       const result = await cursor.toArray();
       res.send(result);
     });
