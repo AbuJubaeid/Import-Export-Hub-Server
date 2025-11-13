@@ -1,16 +1,53 @@
 const express = require('express')
 const app = express()
 const cors = require('cors')
+var admin = require("firebase-admin");
+require("dotenv").config()
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
 const port = process.env.PORT || 3000
+
+
+var serviceAccount = require("./import-export-hub-firebase-adminsdk.json");
+
+admin.initializeApp({
+  credential: admin.credential.cert(serviceAccount)
+});
 
 app.use(cors())
 app.use(express.json());
 
 
+const logger = (req, res, next) =>{
+  console.log("logging information")
+  next()
+}
+
+const verifyFirebaseToken = async(req, res, next) =>{
+  console.log("in the token area", req.headers.authorization)
+  if(!req.headers.authorization){
+    return res.status(401).send({message: "unauthorized access"})
+  }
+  const token = req.headers.authorization.split(' ')[1]
+  if(!token){
+    return res.status(401).send({message: "unauthorized access"})
+  }
 
 
-const uri = "mongodb+srv://IEHub-db:EQfkn0ZTumtJOyFp@cluster0.ke2w89y.mongodb.net/?appName=Cluster0";
+  // verify id token
+  try{
+    const userInfo = await admin.auth().verifyIdToken(token)
+    req.token_email = userInfo.email;
+    console.log("after user validation", userInfo)
+    next()
+  }
+  catch{
+     return res.status(401).send({message: "unauthorized access"})
+  }
+  
+}
+
+
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.ke2w89y.mongodb.net/?appName=Cluster0`;
 
 // Create a MongoClient with a MongoClientOptions object to set the Stable API version
 const client = new MongoClient(uri, {
@@ -37,10 +74,17 @@ async function run() {
     })
 
     // get a single product
-    app.get("/products/:id", async (req, res) => {
+    app.get("/products/:id",verifyFirebaseToken, async (req, res) => {
           const id = req.params.id;
           const query = { _id: new ObjectId(id) };
           const result = await productsCollection.findOne(query);
+          res.send(result);
+        });
+
+        app.get("/myImports/:id",verifyFirebaseToken, async (req, res) => {
+          const id = req.params.id;
+          const query = { _id: new ObjectId(id) };
+          const result = await importsCollection.findOne(query);
           res.send(result);
         });
 
@@ -52,7 +96,7 @@ async function run() {
     })
 
     // get my exports
-     app.get("/myExports", async (req, res) => {
+     app.get("/myExports",verifyFirebaseToken, async (req, res) => {
       const email = req.query.email;
       const query = {};
       if (email) {
@@ -64,7 +108,7 @@ async function run() {
     });
 
     // get my imports
-     app.get("/my-imports", async (req, res) => {
+     app.get("/my-imports",verifyFirebaseToken, async (req, res) => {
       const email = req.query.email;
       const query = {};
       if (email) {
@@ -105,7 +149,7 @@ async function run() {
     });
 
     // add a product
-    app.post('/products', async (req, res)=>{
+    app.post('/products',verifyFirebaseToken, async (req, res)=>{
         const newProduct = req.body;
       const result = await productsCollection.insertOne(newProduct);
       res.send(result);
@@ -114,16 +158,7 @@ async function run() {
     // add a product to myImports
         app.post('/my-imports', async (req, res)=>{
         const newProduct = req.body;
-        // const id = req.params.id
         const result = await importsCollection.insertOne(newProduct);
-
-          // const query = {_id : new ObjectId(id)}
-          // const update = {
-          //   $inc:{
-          //     available_quantity: -1
-          //   }
-          // }
-          // const quantityCount = await productsCollection.updateOne(query, update)
         res.send(result);
     })
 
@@ -134,6 +169,8 @@ async function run() {
       const result = await importsCollection.deleteOne(query);
       res.send(result);
     });
+
+    
     // delete a product
     app.delete("/myExports/:id", async (req, res) => {
       const id = req.params.id;
