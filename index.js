@@ -150,14 +150,14 @@ async function run() {
 
   
     // add a product to myImports
-        app.post('/products',verifyFirebaseToken, async (req, res)=>{
+        app.post('/my-imports',verifyFirebaseToken, async (req, res)=>{
         const newProduct = req.body;
-      const result = await productsCollection.insertOne(newProduct);
+      const result = await importsCollection.insertOne(newProduct);
       res.send(result);
     })
 
      // delete a product from my imports
-    app.delete("/myImports/:id", async (req, res) => {
+    app.delete("/my-imports/:id", async (req, res) => {
       const id = req.params.id;
       const query = { _id: new ObjectId(id) };
       const result = await importsCollection.deleteOne(query);
