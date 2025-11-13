@@ -105,9 +105,9 @@ async function run() {
       const email = req.query.email;
       const query = {};
       if (email) {
-        query.imported_by = email;
+        query.imported_by= email;
       }
-      const cursor = importsCollection.find(query).toArray();
+      const cursor = importsCollection.find(query);
       const result = await cursor.toArray();
       res.send(result);
     });
@@ -148,11 +148,12 @@ async function run() {
       res.send(result);
     })
 
+  
     // add a product to myImports
-        app.post('/my-imports', async (req, res)=>{
+        app.post('/products',verifyFirebaseToken, async (req, res)=>{
         const newProduct = req.body;
-        const result = await importsCollection.insertOne(newProduct);
-        res.send(result);
+      const result = await productsCollection.insertOne(newProduct);
+      res.send(result);
     })
 
      // delete a product from my imports
